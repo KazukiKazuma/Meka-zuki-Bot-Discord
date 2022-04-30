@@ -1,6 +1,9 @@
 import _discord_bot_token_
 import nextcord
 
+from twitchAPI.twitch import Twitch
+from twitchAPI import EventSub
+
 from nextcord.ext import commands
 
 from reaction_tasks.embed_roles.streamer_roles import ScocottaButtons
@@ -22,37 +25,47 @@ class Bot(commands.Bot):
 
             self.persistent_views_added = True
 ######
-        
 
+
+
+
+# async def on_stream_online(data:dict):
+#     print(data)
+#     if "Scocotta" in data:
+#         alert_channel = bot.get_channel(739162342314606622)
+#         await alert_channel.send("Teste")
+
+# twitch = Twitch(client_id, client_secret)
+# twitch.authenticate_app([])
+
+# hook = EventSub("", client_id, 8080, twitch)
+# uuid = twitch.get_users(logins=["danisor"])
+# user_id = uuid['data'][0]['id']
+# hook.unsubscribe_all()
+# hook.start()
+# hook.listen_stream_online(user_id, on_stream_online)
+
+
+
+
+### Intents setup ###
 intents = nextcord.Intents.default()
 intents.members=True
+######
+
 
 ### Bot definitions ###
-
-bot = Bot(command_prefix="!mkzk ", intents=intents)
-######
-
-
-### Gives Basic Roles to New Members ###
-@bot.event
-async def on_member_join(ctx):
-    role_join = ctx.guild.get_role(967849474405838848)
-    role_join_separator_1 = ctx.guild.get_role(967693392433807420)
-    role_join_separator_2 = ctx.guild.get_role(967677263430713344)
-    role_join_separator_3 = ctx.guild.get_role(928409990589448212)
-    await ctx.add_roles(role_join, role_join_separator_1, role_join_separator_2, role_join_separator_3)
-######
-
-
-### Path Definitions ###
-print("------")
+bot = Bot(command_prefix="!msr ", intents=intents)
 ######
 
 
 ### Commands ###
 bot.load_extension("commands.slash_commands.slash_talks")
+bot.load_extension("commands.slash_commands.slash_minecraft_server_status")
 bot.load_extension("reaction_tasks.role_buttons.reaction_buttons")
 bot.load_extension("reaction_tasks.embed_roles.streamer_roles")
+bot.load_extension("events.on_join_server")
+bot.load_extension("reaction_tasks.reaction_roles.registration")
 #bot.load_extension("alerts.stream_alerts")
 #######
 

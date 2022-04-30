@@ -5,12 +5,13 @@ class Manager(commands.Cog):
     """Manage things"""
 
     def __init__(self, bot):
-        self.bot=bot
+        self.bot = bot
 
     @commands.Cog.listener()
     async def on_ready(self):
+        print("-------------------------")
         print(f"Estou online como {self.bot.user}")
-        print("\n-----")
+        print("-------------------------\n")
 
 
 def setup(bot):
