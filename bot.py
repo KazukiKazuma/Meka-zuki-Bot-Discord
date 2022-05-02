@@ -1,8 +1,5 @@
-import _discord_bot_token_
+import _secrets_
 import nextcord
-
-from twitchAPI.twitch import Twitch
-from twitchAPI import EventSub
 
 from nextcord.ext import commands
 
@@ -27,27 +24,6 @@ class Bot(commands.Bot):
 ######
 
 
-
-
-# async def on_stream_online(data:dict):
-#     print(data)
-#     if "Scocotta" in data:
-#         alert_channel = bot.get_channel(739162342314606622)
-#         await alert_channel.send("Teste")
-
-# twitch = Twitch(client_id, client_secret)
-# twitch.authenticate_app([])
-
-# hook = EventSub("", client_id, 8080, twitch)
-# uuid = twitch.get_users(logins=["danisor"])
-# user_id = uuid['data'][0]['id']
-# hook.unsubscribe_all()
-# hook.start()
-# hook.listen_stream_online(user_id, on_stream_online)
-
-
-
-
 ### Intents setup ###
 intents = nextcord.Intents.default()
 intents.members=True
@@ -55,7 +31,7 @@ intents.members=True
 
 
 ### Bot definitions ###
-bot = Bot(command_prefix="!msr ", intents=intents)
+bot = Bot(command_prefix="!mkzk ", intents=intents)
 ######
 
 
@@ -67,6 +43,7 @@ bot.load_extension("reaction_tasks.embed_roles.streamer_roles")
 bot.load_extension("events.on_join_server")
 bot.load_extension("reaction_tasks.reaction_roles.registration")
 #bot.load_extension("alerts.stream_alerts")
+bot.load_extension("commands.standard_commands.reaction_message")
 #######
 
 
@@ -76,6 +53,6 @@ bot.load_extension("manager")
 
 
 ### Discord bot TOKEN ###
-bot_token = _discord_bot_token_.token
+bot_token = _secrets_.bot_token
 bot.run(bot_token)
 ######

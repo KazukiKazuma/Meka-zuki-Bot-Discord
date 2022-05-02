@@ -7,14 +7,16 @@ class RegisterRoles(commands.Cog):
     def __init__(self, bot):
         self.bot=bot
 
-        self.role_message_id = 969492407290847234
+        self.role_channel_id = 968221148619882576
         self.emoji_to_role = {
             nextcord.PartialEmoji(name='🎎'): 969492005577183253,
-             nextcord.PartialEmoji(name='🦊'): 969560877860794389,
+            nextcord.PartialEmoji(name='🦊'): 969560877860794389,
             nextcord.PartialEmoji(name='🌑'): 969561374688673812,
             nextcord.PartialEmoji(name='🧝‍♂️'): 969562392927272980,
             nextcord.PartialEmoji(name='👷‍♂️'): 969561839333695509,
             nextcord.PartialEmoji(name='👨‍🌾'): 969562114983337995,
+            nextcord.PartialEmoji(name='🔞'): 739174493850828973,
+            nextcord.PartialEmoji(name='🧩'): 968305659588255824,
         }
 
     @commands.Cog.listener()
@@ -23,7 +25,7 @@ class RegisterRoles(commands.Cog):
         
         bot = self.bot
         
-        if payload.message_id != self.role_message_id:
+        if payload.channel_id != self.role_channel_id:
             return
 
         guild = bot.get_guild(738510840042356857)
@@ -50,7 +52,7 @@ class RegisterRoles(commands.Cog):
         
         bot = self.bot
         
-        if payload.message_id != self.role_message_id:
+        if payload.channel_id != self.role_channel_id:
             return
 
         guild = bot.get_guild(738510840042356857)
