@@ -1,4 +1,4 @@
-import _discord_bot_token_
+import _secrets_
 import nextcord
 
 from nextcord.ext import commands
@@ -22,38 +22,28 @@ class Bot(commands.Bot):
 
             self.persistent_views_added = True
 ######
-        
 
+
+### Intents setup ###
 intents = nextcord.Intents.default()
 intents.members=True
+######
+
 
 ### Bot definitions ###
-
 bot = Bot(command_prefix="!mkzk ", intents=intents)
-######
-
-
-### Gives Basic Roles to New Members ###
-@bot.event
-async def on_member_join(ctx):
-    role_join = ctx.guild.get_role(967849474405838848)
-    role_join_separator_1 = ctx.guild.get_role(967693392433807420)
-    role_join_separator_2 = ctx.guild.get_role(967677263430713344)
-    role_join_separator_3 = ctx.guild.get_role(928409990589448212)
-    await ctx.add_roles(role_join, role_join_separator_1, role_join_separator_2, role_join_separator_3)
-######
-
-
-### Path Definitions ###
-print("------")
 ######
 
 
 ### Commands ###
 bot.load_extension("commands.slash_commands.slash_talks")
+bot.load_extension("commands.slash_commands.slash_minecraft_server_status")
 bot.load_extension("reaction_tasks.role_buttons.reaction_buttons")
 bot.load_extension("reaction_tasks.embed_roles.streamer_roles")
+bot.load_extension("events.on_join_server")
+bot.load_extension("reaction_tasks.reaction_roles.registration")
 #bot.load_extension("alerts.stream_alerts")
+bot.load_extension("commands.standard_commands.reaction_message")
 #######
 
 
@@ -63,6 +53,6 @@ bot.load_extension("manager")
 
 
 ### Discord bot TOKEN ###
-bot_token = _discord_bot_token_.token
+bot_token = _secrets_.bot_token
 bot.run(bot_token)
 ######

@@ -1,2 +1,4 @@
 __pycache__
-_discord_bot_token_.py
+_secrets_.py
+_stream_alerts_temp_.py
+_stream_alerts_.py
