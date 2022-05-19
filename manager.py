@@ -12,6 +12,8 @@ class Manager(commands.Cog):
         print("-------------------------")
         print(f"Estou online como {self.bot.user}")
         print("-------------------------\n")
+        
+        
 
 
 def setup(bot):

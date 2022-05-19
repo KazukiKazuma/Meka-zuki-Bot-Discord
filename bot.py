@@ -3,7 +3,7 @@ import nextcord
 
 from nextcord.ext import commands
 
-from reaction_tasks.embed_roles.streamer_roles import ScocottaButtons
+from reaction_tasks.embed_roles.streamer_roles import DaxlianButtons, ScocottaButtons
 from reaction_tasks.role_buttons.reaction_buttons import VowButton
 
 
@@ -19,6 +19,7 @@ class Bot(commands.Bot):
 
             self.add_view(VowButton(bot))
             self.add_view(ScocottaButtons())
+            self.add_view(DaxlianButtons())
 
             self.persistent_views_added = True
 ######
@@ -31,20 +32,22 @@ intents.members=True
 
 
 ### Bot definitions ###
-bot = Bot(command_prefix="!mkzk ", intents=intents)
+bot = Bot(command_prefix="!msr ", intents=intents)
 ######
+
 
 
 ### Commands ###
 bot.load_extension("commands.slash_commands.slash_talks")
-bot.load_extension("commands.slash_commands.slash_minecraft_server_status")
+bot.load_extension("commands.standard_commands.minecraft_server_status")
 bot.load_extension("reaction_tasks.role_buttons.reaction_buttons")
 bot.load_extension("reaction_tasks.embed_roles.streamer_roles")
 bot.load_extension("events.on_join_server")
 bot.load_extension("reaction_tasks.reaction_roles.registration")
-#bot.load_extension("alerts.stream_alerts")
+# bot.load_extension("alerts._stream_alerts_")
 bot.load_extension("commands.standard_commands.reaction_message")
 #######
+
 
 
 ### Manager ###
