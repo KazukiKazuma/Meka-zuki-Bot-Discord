@@ -9,9 +9,7 @@ class Manager(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("-------------------------")
-        print(f"Estou online como {self.bot.user}")
-        print("-------------------------\n")
+        print(f"-------------------------\nEstou online como {self.bot.user}\n-------------------------")
         
         
 

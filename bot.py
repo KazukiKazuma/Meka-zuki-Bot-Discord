@@ -39,6 +39,7 @@ bot = Bot(command_prefix="!msr ", intents=intents)
 
 ### Commands ###
 bot.load_extension("commands.slash_commands.slash_talks")
+bot.load_extension("commands.slash_commands.jokenpo")
 bot.load_extension("commands.standard_commands.minecraft_server_status")
 bot.load_extension("reaction_tasks.role_buttons.reaction_buttons")
 bot.load_extension("reaction_tasks.embed_roles.streamer_roles")
@@ -46,6 +47,8 @@ bot.load_extension("events.on_join_server")
 bot.load_extension("reaction_tasks.reaction_roles.registration")
 # bot.load_extension("alerts._stream_alerts_")
 bot.load_extension("commands.standard_commands.reaction_message")
+bot.load_extension("music_player.youtube_player")
+bot.load_extension("commands.slash_commands.help_command")
 #######
 
 
