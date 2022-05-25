@@ -9,8 +9,12 @@ class MineServerStatus(commands.Cog):
         self.bot = bot
     
 
-    @nextcord.slash_command(description="informe que o servidor de minecraft está offline")
-    async def serveronline(self, interaction: nextcord.Interaction):
+    @commands.command(name="serveronline")
+    @commands.is_owner()
+    async def serveronline(self, ctx):
+        
+        guild = self.bot.get_guild(738510840042356857)
+        channel = guild.get_channel(968295149102825522)
         
         online_image_url = "https://i.imgur.com/XVI5czX.gif"
         
@@ -21,10 +25,15 @@ class MineServerStatus(commands.Cog):
     )
         alicchia_online.set_thumbnail(url=online_image_url)
         
-        await interaction.response.send_message(embed = alicchia_online)
+        await channel.purge(limit=2)
+        await ctx.send(embed=alicchia_online)
         
-    @nextcord.slash_command(description="informe que o servidor de minecraft está offline")
-    async def serveroffline(self, interaction: nextcord.Interaction):
+    @commands.command(name="serveroffline")
+    @commands.is_owner()
+    async def serveroffline(self, ctx):
+        
+        guild = self.bot.get_guild(738510840042356857)
+        channel = guild.get_channel(968295149102825522)
         
         offline_image_url = "https://i.imgur.com/frS9UZn.gif"
         
@@ -35,7 +44,8 @@ class MineServerStatus(commands.Cog):
     )
         alicchia_offline.set_thumbnail(url=offline_image_url)
         
-        await interaction.send(embed=alicchia_offline)
+        await channel.purge(limit=2)
+        await ctx.send(embed=alicchia_offline)
 
 
 
