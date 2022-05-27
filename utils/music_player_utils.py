@@ -62,3 +62,40 @@ play_not_in_same_vc = nextcord.Embed(
     color=0xe42a44
 )
 play_not_in_same_vc.set_footer(text="no caso de dúvidas procure usar o comando /help")
+
+music_already_playing = nextcord.Embed(
+    title="Ops ...",
+    description="A música não está pausada para você precisar despausa-la",
+    color=0xe42a44
+)
+music_already_playing.set_footer(text="no caso de dúvidas procure usar o comando /help")
+
+music_already_paused = nextcord.Embed(
+    title="Ops ...",
+    description="Não tem nenhuma música tocando no momento para que você possa pausa-la",
+    color=0xe42a44
+)
+music_already_paused.set_footer(text="no caso de dúvidas procure usar o comando /help")
+
+no_next_songs = nextcord.Embed(
+    title="Acabaram as músicas..",
+    description="Não existe nenhuma próxima música para tocar, você pode usar `/play` para adicionar novas músicas à queue ou `/stop` caso queira parar a música atual.",
+    color=0xe42a44
+)
+no_next_songs.set_footer(text="no caso de dúvidas procure usar o comando /help")
+
+check_your_dm = nextcord.Embed(
+    title="Dê uma olhada nas suas mensagens privadas   <a:PingoBongo:905962919727091752> ",
+    color=0x3b88c3
+)
+
+
+
+
+panel_embed= nextcord.Embed(
+    title="Painel",
+    description="use este painel para controlar o bot\nㅤ",
+    color=0x3b88c3
+)
+panel_embed.set_thumbnail(url="https://image.shutterstock.com/image-vector/record-retro-pixel-art-80s-600w-1691907124.jpg")
+panel_embed.set_footer(text="caso tenha alguma dúvida, procure usar o comando /help", icon_url="http://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/222743d3b911795.png")
