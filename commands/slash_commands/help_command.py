@@ -1,6 +1,6 @@
 import nextcord
 from nextcord.ext import commands
-from utils import help_command_utils
+from utils import help_command_utils, guild_utils
 
 
 class HelpCog(commands.Cog):
@@ -9,7 +9,7 @@ class HelpCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @nextcord.slash_command(name="help", description="Obtenha ajuda relacionada aos comandos do Mekazuki")
+    @nextcord.slash_command(name="help", description="Obtenha ajuda relacionada aos comandos do Mekazuki", guild_ids=guild_utils.guild_ids)
     async def help(self,
             interaction: nextcord.Interaction,
             help_needed = nextcord.SlashOption(

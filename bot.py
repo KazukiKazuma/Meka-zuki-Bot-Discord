@@ -5,6 +5,8 @@ from nextcord.ext import commands
 
 from reaction_tasks.embed_roles.streamer_roles import DaxlianButtons, ScocottaButtons
 from reaction_tasks.role_buttons.reaction_buttons import VowButton
+from music_player.youtube_player import ControlPanel
+from utils import guild_utils
 
 
 
@@ -20,6 +22,7 @@ class Bot(commands.Bot):
             self.add_view(VowButton(bot))
             self.add_view(ScocottaButtons())
             self.add_view(DaxlianButtons())
+            self.add_view(ControlPanel(bot))
 
             self.persistent_views_added = True
 ######
@@ -32,7 +35,7 @@ intents.members=True
 
 
 ### Bot definitions ###
-bot = Bot(command_prefix="!msr ", intents=intents)
+bot = Bot(command_prefix=guild_utils.prefix, intents=intents)
 ######
 
 

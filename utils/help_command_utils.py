@@ -16,6 +16,16 @@ help_music.add_field(
     inline=False
 )
 help_music.add_field(
+    name="/stop",
+    value="Faz com que o bot pare de tocar música, limpe a queue, mas continue no canal de voz;",
+    inline=False
+)
+help_music.add_field(
+    name="/leave",
+    value="Faz com que o bot se desconecte do canal de voz, o que por sua vez também limpa a queue;",
+    inline=False
+)
+help_music.add_field(
     name="/queue",
     value="Mostra a lista de músicas que foram adicionadas e estão na fila de espera para serem tocadas;",
     inline=False
@@ -43,6 +53,11 @@ help_music.add_field(
 help_music.add_field(
     name="/nowplaying",
     value="Envia uma mensagem contendo o nome e mais algumas informações da música que está tocando no momento que o comando foi usado.",
+    inline=False
+)
+help_music.add_field(
+    name="/link_da_musica_no_pv",
+    value="Envia o link da música que está tocando no momento nas suas mensagens privadas para que você possa se lembrar da música mais tarde caso queira.",
     inline=False
 )
 help_music.add_field(
