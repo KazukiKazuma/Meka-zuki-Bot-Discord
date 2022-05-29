@@ -142,7 +142,6 @@ class ControlPanel(nextcord.ui.View):
     @nextcord.ui.button(emoji="<:stop_orange:980099927050952754>", style=nextcord.ButtonStyle.gray, custom_id="stop_button")
     async def stop_button(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         vc: nextwave.Player = interaction.guild.voice_client
-        await interaction.response.defer()
         if vc.loop:
             return await interaction.send(embed=music_player_utils.music_is_looping, ephemeral=True) 
         if not vc.is_playing():
