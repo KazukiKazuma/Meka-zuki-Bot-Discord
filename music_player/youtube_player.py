@@ -22,13 +22,12 @@ class ControlPanel(nextcord.ui.View):
         else:
             vc: nextwave.Player = interaction.guild.voice_client
 
-        if vc.channel == interaction.user.voice.channel:
-            if vc.is_paused():
-                await vc.resume()
-            elif vc.is_playing():
-                await vc.pause()
-        else:
-            await interaction.send(embed=music_player_utils.command_not_in_same_vc, ephemeral=True)
+        if vc.is_paused():
+            await interaction.response.defer()
+            await vc.resume()
+        elif vc.is_playing():
+            await interaction.response.defer()
+            await vc.pause()
 
 
     async def handle_skip(self, button:nextcord.ui.Button, interaction:nextcord.Interaction):
@@ -40,8 +39,6 @@ class ControlPanel(nextcord.ui.View):
             vc: nextwave.Player = interaction.guild.voice_client
 
         if vc.channel == interaction.user.voice.channel:
-            if vc.loop:
-                return
             
             if not vc.is_playing(): 
                 return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
@@ -53,7 +50,6 @@ class ControlPanel(nextcord.ui.View):
                     return
             else:
                 await interaction.send(embed=music_player_utils.no_next_songs, ephemeral=True)
-
 
 
         else:
@@ -69,6 +65,7 @@ class ControlPanel(nextcord.ui.View):
             vc: nextwave.Player = interaction.guild.voice_client
 
         if vc.channel == interaction.user.voice.channel:
+            
             if vc.is_playing() or vc.is_paused():
                 if vc.queue.is_empty:
                     await vc.stop()
@@ -91,26 +88,23 @@ class ControlPanel(nextcord.ui.View):
         else:
             vc: nextwave.Player = interaction.guild.voice_client
 
-        if vc.channel == interaction.user.voice.channel:
-            try:
-                vc.loop ^= True
-            except Exception:
-                setattr(vc, "loop", False)
-        else:
-            await interaction.send(embed=music_player_utils.command_not_in_same_vc, ephemeral=True)
+        try:
+            vc.loop ^= True
+        except Exception:
+            setattr(vc, "loop", False)
 
 
     async def handle_close(self, button:nextcord.ui.Button, interaction: nextcord.Interaction):
         vc: nextwave.Player = interaction.guild.voice_client
         if vc is not None:
             if vc.channel == interaction.user.voice.channel:
-                await interaction.response.defer()
+                await interaction.message.delete()
+            elif not vc.is_playing():
                 await interaction.message.delete()
             else:
                 await interaction.send(embed=music_player_utils.command_not_in_same_vc, ephemeral=True)
         else:
-            await interaction.response.defer()
-            await interaction.message.delete()
+            return
 
 
 
@@ -121,53 +115,59 @@ class ControlPanel(nextcord.ui.View):
         if not vc.is_playing():
             return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
         else:
-            if not vc.is_paused():
-                button.style = nextcord.ButtonStyle.blurple
-                button.emoji = "<:play_gray:980100044801851413>"
+            if vc.channel == interaction.user.voice.channel:
+                if not vc.is_paused():
+                    button.style = nextcord.ButtonStyle.blurple
+                    button.emoji = "<:play_gray:980100044801851413>"
+                else:
+                    button.style = nextcord.ButtonStyle.gray
+                    button.emoji = "<:pause_orange:980099882662625351>"
+                await self.handle_play_pause(button, interaction)
+                await interaction.message.edit(view=self)
             else:
-                button.style = nextcord.ButtonStyle.gray
-                button.emoji = "<:pause_orange:980099882662625351>"
-            await interaction.message.edit(view=self)
-            await self.handle_play_pause(button, interaction)
-        await interaction.response.defer()
+                await interaction.send(embed=music_player_utils.command_not_in_same_vc, ephemeral=True)
+        #await interaction.response.defer()
 
     @nextcord.ui.button(emoji="<:skip_orange:980099944797061160>", style=nextcord.ButtonStyle.gray, custom_id="skip_button")
     async def skip_button(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         vc: nextwave.Player = interaction.guild.voice_client
         if vc.loop:
-            return await interaction.response.defer()
+            return await interaction.send(embed=music_player_utils.music_is_looping, ephemeral=True) 
         if not vc.is_playing():
             return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
         else:
-            await self.handle_skip(button, interaction)
             await interaction.response.defer()
+            await self.handle_skip(button, interaction)
 
     @nextcord.ui.button(emoji="<:stop_orange:980099927050952754>", style=nextcord.ButtonStyle.gray, custom_id="stop_button")
     async def stop_button(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         vc: nextwave.Player = interaction.guild.voice_client
+        await interaction.response.defer()
         if vc.loop:
-            return await interaction.response.defer()
+            return await interaction.send(embed=music_player_utils.music_is_looping, ephemeral=True) 
         if not vc.is_playing():
             return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
         else:
             await self.handle_stop(button, interaction)
-        await interaction.response.defer()
 
     @nextcord.ui.button(emoji="<:loop_one:980099967198847068>", style=nextcord.ButtonStyle.gray, custom_id="loop_button")
     async def loop_button(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         vc: nextwave.Player = interaction.guild.voice_client
+        await interaction.response.defer()
         if not vc.is_playing():
             return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
         else:
-            if not vc.loop:
-                button.style = nextcord.ButtonStyle.blurple
-                button.emoji = "<:loop_one:980099967198847068>"
+            if vc.channel == interaction.user.voice.channel:
+                if not vc.loop:
+                    button.style = nextcord.ButtonStyle.blurple
+                    button.emoji = "<:loop_one_gray:980100113965916161>"
+                else:
+                    button.style = nextcord.ButtonStyle.gray
+                    button.emoji = "<:loop_one:980099967198847068>"
+                await self.handle_loop(button, interaction)
+                await interaction.message.edit(view=self)
             else:
-                button.style = nextcord.ButtonStyle.gray
-                button.emoji = "<:loop_one_gray:980100113965916161>"
-            await interaction.message.edit(view=self)
-            await self.handle_loop(button, interaction)
-        await interaction.response.defer()
+                await interaction.send(embed=music_player_utils.command_not_in_same_vc, ephemeral=True)
 
     @nextcord.ui.button(emoji="✖", style=nextcord.ButtonStyle.red, custom_id="close_button")
     async def close_button(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
@@ -233,14 +233,7 @@ class YTPlayerCog(commands.Cog):
         if vc.loop:
             if vc.is_paused():
                 return
-            await vc.play(track)
-            try:
-                await self.handle_panel_edit(interaction)
-            except NameError:
-                return
-            except nextcord.NotFound:
-                return
-            return
+            return await vc.play(track)
 
 
         try:
@@ -296,26 +289,33 @@ class YTPlayerCog(commands.Cog):
         elif not interaction.guild.voice_client:
             return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
         else:
-            try:
-                await self.handle_panel_start(interaction)
-            except NameError:
-                await interaction.send(embed=music_player_utils.no_music_playing, delete_after=25)
-            except nextcord.NotFound:
-                await interaction.send(embed=music_player_utils.no_music_playing, delete_after=25)
+            if vc.channel == interaction.user.voice.channel:
+                
+                if vc.is_playing():
+                    try:
+                        await self.check_if_panel_exists(interaction)
+                        await self.delete_old_panel(interaction)
+                    except NameError:
+                        pass
+                    except nextcord.NotFound:
+                        pass
+                    except SyntaxError:
+                        pass
+                    
+                    await self.handle_panel_start(interaction)
+                    
+                else:
+                    await interaction.send(embed=music_player_utils.no_music_playing, delete_after=25)
+            else:
+                await interaction.send(embed=music_player_utils.command_not_in_same_vc, ephemeral=True)
 
     async def handle_panel_start(self, interaction:nextcord.Interaction):
         panel_buttons = ControlPanel(self)
         vc: nextwave.Player = interaction.guild.voice_client
 
         if vc.channel == interaction.user.voice.channel:
-            try:
-                await self.delete_old_panel(interaction)
-            except NameError:
-                pass
-            except nextcord.NotFound:
-                pass
-            except SyntaxError:
-                pass
+            
+            
             music_player_utils.panel_embed.set_image(url=vc.source.thumbnail)
             music_player_utils.panel_embed.clear_fields()
             music_player_utils.panel_embed.add_field(name=f"Música tocando no momento:", value=f"[{vc.source.title}]({vc.source.uri})\nduração  `{str(datetime.timedelta(seconds=vc.source.length))}`", inline=False)
@@ -361,9 +361,17 @@ class YTPlayerCog(commands.Cog):
         channel = interaction.channel
         old_panel = channel.get_partial_message(first_music_panel_message_message)
         await nextcord.Message.delete(old_panel)
+        
+        
+        
+        
+    async def check_if_panel_exists(self, interaction:nextcord.Interaction):
+        channel = interaction.channel
+        edit_panel = channel.get_partial_message(first_music_panel_message_message)
+        music_player_utils.panel_embed.set_footer(text="no caso de dúvidas use /help", icon_url=self.bot.user.display_avatar)
+        await edit_panel.edit(embed=music_player_utils.panel_embed)
             
-
-
+            
 
 
     @nextcord.slash_command(description="Toque uma musica", guild_ids=guild_utils.guild_ids)
@@ -404,6 +412,7 @@ class YTPlayerCog(commands.Cog):
 
         if vc.channel == interaction.user.voice.channel:
             if not vc.is_playing() and vc.queue.is_empty and vc.channel == interaction.user.voice.channel:
+                
                 await vc.set_volume(2)
                 await vc.play(search)
                 try:
@@ -413,8 +422,11 @@ class YTPlayerCog(commands.Cog):
                     await interaction.send(embed=playing_embed, delete_after=25)
                 except nextcord.NotFound:
                     await interaction.send(embed=playing_embed, delete_after=25)
+                except AttributeError:
+                    await interaction.send(embed=playing_embed, delete_after=25)
 
             elif vc.is_paused() and vc.channel == interaction.user.voice.channel:
+                
                 await vc.queue.put_wait(search)
                 pause_added_queue_embed = nextcord.Embed(
                 title="Adicionada à queue:",
@@ -423,7 +435,7 @@ class YTPlayerCog(commands.Cog):
                 )
                 pause_added_queue_embed.set_thumbnail(url=f"{search.mqthumbnail}")
                 pause_added_queue_embed.add_field(name="lembrete", value="a música está pausada, para despausar basta usar o comando `/resume`")
-
+                
                 await vc.queue.put_wait(search)
                 queue = vc.queue.copy()
                 song_count = 0
@@ -438,13 +450,14 @@ class YTPlayerCog(commands.Cog):
                 except nextcord.NotFound:
                     pass
             elif vc.is_playing() and vc.channel == interaction.user.voice.channel:
+                
                 added_queue_embed = nextcord.Embed(
                 title="Adicionada à queue:",
                 description=f"[{search.title}]({search.uri})\n`{str(datetime.timedelta(seconds=search.length))}`",
                 color=0x2494f4
                 )
                 added_queue_embed.set_thumbnail(url=f"{search.mqthumbnail}")
-
+                
                 await vc.queue.put_wait(search)
                 queue = vc.queue.copy()
                 song_count = 0
@@ -502,7 +515,7 @@ class YTPlayerCog(commands.Cog):
 
         if vc.channel == interaction.user.voice.channel:
             try:
-                await self.handle_panel_edit(interaction)
+                await self.check_if_panel_exists(interaction)
                 return await interaction.send(embed=music_player_utils.use_use_the_panel, ephemeral=True)
             except NameError:
                 pass
@@ -528,7 +541,7 @@ class YTPlayerCog(commands.Cog):
 
         if vc.channel == interaction.user.voice.channel:
             try:
-                await self.handle_panel_edit(interaction)
+                await self.check_if_panel_exists(interaction)
                 return await interaction.send(embed=music_player_utils.use_use_the_panel, ephemeral=True)
             except NameError:
                 pass
@@ -554,7 +567,7 @@ class YTPlayerCog(commands.Cog):
 
         if vc.channel == interaction.user.voice.channel:
             try:
-                await self.handle_panel_edit(interaction)
+                await self.check_if_panel_exists(interaction)
                 return await interaction.send(embed=music_player_utils.use_use_the_panel, ephemeral=True)
             except NameError:
                 pass
@@ -593,12 +606,14 @@ class YTPlayerCog(commands.Cog):
             vc: nextwave.Player = interaction.guild.voice_client
 
         if vc.channel == interaction.user.voice.channel or not vc.is_playing():
-            await vc.disconnect()
             await interaction.send(embed=leave_embed, delete_after=5)
+            await vc.disconnect()
             try:
                 channel = interaction.channel
                 old_panel = channel.get_partial_message(first_music_panel_message_message)
                 await nextcord.Message.delete(old_panel)
+            except AttributeError:
+                pass
             except:
                 pass
         else:
@@ -621,7 +636,7 @@ class YTPlayerCog(commands.Cog):
 
         if vc.channel == interaction.user.voice.channel:
             try:
-                await self.handle_panel_edit(interaction)
+                await self.check_if_panel_exists(interaction)
                 return await interaction.send(embed=music_player_utils.use_use_the_panel, ephemeral=True)
             except NameError:
                 pass
@@ -646,7 +661,7 @@ class YTPlayerCog(commands.Cog):
 
         if vc.channel == interaction.user.voice.channel:
             try:
-                await self.handle_panel_edit(interaction)
+                await self.check_if_panel_exists(interaction)
                 return await interaction.send(embed=music_player_utils.use_use_the_panel, ephemeral=True)
             except NameError:
                 pass
