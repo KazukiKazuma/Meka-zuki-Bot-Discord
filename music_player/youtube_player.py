@@ -315,7 +315,6 @@ class YTPlayerCog(commands.Cog):
 
         if vc.channel == interaction.user.voice.channel:
             
-            
             music_player_utils.panel_embed.set_image(url=vc.source.thumbnail)
             music_player_utils.panel_embed.clear_fields()
             music_player_utils.panel_embed.add_field(name=f"Música tocando no momento:", value=f"[{vc.source.title}]({vc.source.uri})\nduração  `{str(datetime.timedelta(seconds=vc.source.length))}`", inline=False)
@@ -342,7 +341,7 @@ class YTPlayerCog(commands.Cog):
         if vc.loop :
             return
         else:
-            if vc.source is not None:
+            if vc.is_playing():
                 music_player_utils.panel_embed.set_image(url=vc.source.thumbnail)
                 music_player_utils.panel_embed.set_field_at(index=0, name=f"Música tocando no momento:", value=f"[{vc.source.title}]({vc.source.uri})\nduração  `{str(datetime.timedelta(seconds=vc.source.length))}`", inline=False)
                 if vc.queue.count > 1:
