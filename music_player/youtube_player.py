@@ -386,7 +386,10 @@ class YTPlayerCog(commands.Cog):
             playlist = await vc.node.get_playlist(nextwave.YouTubePlaylist, searchit)
             search = playlist.tracks
         else:
-            search = await nextwave.YouTubeTrack.search(query=searchit, return_first=True)
+            try:
+                search = await nextwave.YouTubeTrack.search(query=searchit, return_first=True)
+            except:
+                search = await vc.node.get_tracks(nextwave.YouTubeTrack, searchit)
 
         if vc.channel == interaction.user.voice.channel:
             
@@ -429,12 +432,27 @@ class YTPlayerCog(commands.Cog):
                 if type(search) == list:
                     for track in search:
                         await vc.queue.put_wait(track)
+                    
+                    if len(search) == 1:
+                        added_queue_embed = nextcord.Embed(
+                        title="Adicionada à queue:",
+                        description=f"[{search[0].title}]({search[0].uri})\n`{str(datetime.timedelta(seconds=search[0].length))}`",
+                        color=0x2494f4
+                        )
+                        added_queue_embed.set_thumbnail(url=f"{search[0].mqthumbnail}")
                         
-                    added_queue_embed = nextcord.Embed(
-                    title="Adicionadas à queue:",
-                    description=f"`{len(search)}` músicas foram adicionadas à queue",
-                    color=0x2494f4
-                    )
+                        queue = vc.queue.copy()
+                        song_count = 0
+                        for song in queue:
+                            song_count += 1
+                            added_queue_embed.set_footer(text=f"Esta música foi adicionada na posição {song_count} da queue", icon_url="https://i.imgur.com/M6rbN5i.png")
+                            
+                    else: 
+                        added_queue_embed = nextcord.Embed(
+                        title="Adicionadas à queue:",
+                        description=f"`{len(search)}` músicas foram adicionadas à queue",
+                        color=0x2494f4
+                        )
                     
                     try:
                         await self.handle_panel_edit(interaction)
