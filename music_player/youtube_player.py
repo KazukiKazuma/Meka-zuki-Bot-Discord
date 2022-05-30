@@ -1,6 +1,9 @@
+import time
+from unicodedata import name
 import nextcord
 from nextcord.ext import commands
 import nextwave
+from nextwave.ext import spotify
 import datetime
 from utils import music_player_utils, guild_utils
 import _secrets_
@@ -51,7 +54,6 @@ class ControlPanel(nextcord.ui.View):
             else:
                 await interaction.send(embed=music_player_utils.no_next_songs, ephemeral=True)
 
-
         else:
             await interaction.send(embed=music_player_utils.command_not_in_same_vc, ephemeral=True)
 
@@ -96,15 +98,13 @@ class ControlPanel(nextcord.ui.View):
 
     async def handle_close(self, button:nextcord.ui.Button, interaction: nextcord.Interaction):
         vc: nextwave.Player = interaction.guild.voice_client
-        if vc is not None:
+        if vc.is_playing():
             if vc.channel == interaction.user.voice.channel:
-                await interaction.message.delete()
-            elif not vc.is_playing():
                 await interaction.message.delete()
             else:
                 await interaction.send(embed=music_player_utils.command_not_in_same_vc, ephemeral=True)
         else:
-            return
+            return await interaction.message.delete()
 
 
 
@@ -179,7 +179,7 @@ class ControlPanel(nextcord.ui.View):
         if vc.loop:
             return
         else:
-            if vc.source is not None:
+            if vc.is_playing():
                 music_player_utils.panel_embed.set_image(url=vc.source.thumbnail)
                 music_player_utils.panel_embed.set_field_at(index=0, name=f"Música tocando no momento:", value=f"[{vc.source.title}]({vc.source.uri})\nduração  `{str(datetime.timedelta(seconds=vc.source.length))}`", inline=False)
                 if vc.queue.count > 1:
@@ -215,7 +215,11 @@ class YTPlayerCog(commands.Cog):
         host=_secrets_.lavalink_host,
         port=_secrets_.lavalink_port,
         password=_secrets_.lavalink_password,
-        https=_secrets_.lavalink_https
+        https=_secrets_.lavalink_https,
+        spotify_client=spotify.SpotifyClient(
+            client_id= "8b35b207b7fc4d5393f05aa1887dac2b",
+            client_secret="da3bf7ccc5014dc5b2cfd06ec37b544f"
+        )
     )
 
 
@@ -239,36 +243,25 @@ class YTPlayerCog(commands.Cog):
             next_song = vc.queue.get()
         except nextwave.QueueEmpty:
             try:
-                await self.handle_panel_edit(interaction)
-            except NameError:
+                return await self.handle_panel_edit(interaction)
+            except Exception:
                 return
-            except nextcord.NotFound:
-                return
-            return
-        
-        next_playing_embed = nextcord.Embed(
-            title="Agora Tocando:",
-            description=f"[{next_song.title}]({next_song.uri})",
-            color=0x2494f4
-        )
-        next_playing_embed.set_thumbnail(url=f"{next_song.mqthumbnail}")
-        next_playing_embed.set_footer(text=f"duração  {str(datetime.timedelta(seconds=next_song.length))}", icon_url="https://i.imgur.com/M6rbN5i.png")
             
         if next_song is not None:
             await vc.play(next_song)
 
-
         try:
             await self.handle_panel_edit(interaction)
-        except NameError:
+        except Exception:
             try:
-                await interaction.send(embed=next_playing_embed, delete_after=25)
-            except:
-                guild = self.bot.get_guild(guild_utils.guild_id)
-                channel = guild.get_channel(guild_utils.music_channel_id)
-                await channel.send(embed=next_playing_embed, delete_after=25)
-        except nextcord.NotFound:
-            try:
+                next_playing_embed = nextcord.Embed(
+                title="Agora Tocando:",
+                description=f"[{next_song.title}]({next_song.uri})",
+                color=0x2494f4
+                )
+                next_playing_embed.set_thumbnail(url=f"{next_song.mqthumbnail}")
+                next_playing_embed.set_footer(text=f"duração  {str(datetime.timedelta(seconds=next_song.length))}", icon_url="https://i.imgur.com/M6rbN5i.png")
+                
                 await interaction.send(embed=next_playing_embed, delete_after=25)
             except:
                 guild = self.bot.get_guild(guild_utils.guild_id)
@@ -276,8 +269,6 @@ class YTPlayerCog(commands.Cog):
                 await channel.send(embed=next_playing_embed, delete_after=25)
 
         
-
-
 
 
     @nextcord.slash_command(description="Envia um painel de controle da música no canal de texto", guild_ids=guild_utils.guild_ids)
@@ -304,32 +295,28 @@ class YTPlayerCog(commands.Cog):
                     await self.handle_panel_start(interaction)
                     
                 else:
-                    await interaction.send(embed=music_player_utils.no_music_playing, delete_after=25)
+                    await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
             else:
                 await interaction.send(embed=music_player_utils.command_not_in_same_vc, ephemeral=True)
 
     async def handle_panel_start(self, interaction:nextcord.Interaction):
         panel_buttons = ControlPanel(self)
         vc: nextwave.Player = interaction.guild.voice_client
-
-        if vc.channel == interaction.user.voice.channel:
             
-            music_player_utils.panel_embed.set_image(url=vc.source.thumbnail)
-            music_player_utils.panel_embed.clear_fields()
-            music_player_utils.panel_embed.add_field(name=f"Música tocando no momento:", value=f"[{vc.source.title}]({vc.source.uri})\nduração  `{str(datetime.timedelta(seconds=vc.source.length))}`", inline=False)
-            music_player_utils.panel_embed.set_footer(text="no caso de dúvidas use /help", icon_url=self.bot.user.display_avatar)
-            if vc.queue.count > 1:
-                music_player_utils.panel_embed.add_field(name="ㅤ", value=f"{vc.queue.count} músicas na fila para serem tocadas", inline=False)
-            elif vc.queue.count == 1:
-                music_player_utils.panel_embed.add_field(name="ㅤ", value=f"1 música na fila para ser tocada em seguida", inline=False)
-            else:
-                music_player_utils.panel_embed.add_field(name="ㅤ", value=f"nenhuma música na fila para ser tocada", inline=False)
-            await interaction.send(embed=music_player_utils.panel_embed, view=panel_buttons)
-            panel = await interaction.original_message()
-            global first_music_panel_message_message
-            first_music_panel_message_message = panel.id
+        music_player_utils.panel_embed.set_image(url=vc.source.thumbnail)
+        music_player_utils.panel_embed.clear_fields()
+        music_player_utils.panel_embed.add_field(name=f"Música tocando no momento:", value=f"[{vc.source.title}]({vc.source.uri})\nduração  `{str(datetime.timedelta(seconds=vc.source.length))}`", inline=False)
+        music_player_utils.panel_embed.set_footer(text="no caso de dúvidas use /help", icon_url=self.bot.user.display_avatar)
+        if vc.queue.count > 1:
+            music_player_utils.panel_embed.add_field(name="ㅤ", value=f"{vc.queue.count} músicas na fila para serem tocadas", inline=False)
+        elif vc.queue.count == 1:
+            music_player_utils.panel_embed.add_field(name="ㅤ", value=f"1 música na fila para ser tocada em seguida", inline=False)
         else:
-            await interaction.send(embed=music_player_utils.command_not_in_same_vc, ephemeral=True)
+            music_player_utils.panel_embed.add_field(name="ㅤ", value=f"nenhuma música na fila para ser tocada", inline=False)
+        await interaction.send(embed=music_player_utils.panel_embed, view=panel_buttons)
+        panel = await interaction.original_message()
+        global first_music_panel_message_message
+        first_music_panel_message_message = panel.id
 
     async def handle_panel_edit(self, interaction:nextcord.Interaction):
         panel_buttons = ControlPanel(self)
@@ -360,9 +347,6 @@ class YTPlayerCog(commands.Cog):
         old_panel = channel.get_partial_message(first_music_panel_message_message)
         await nextcord.Message.delete(old_panel)
         
-        
-        
-        
     async def check_if_panel_exists(self, interaction:nextcord.Interaction):
         channel = interaction.channel
         edit_panel = channel.get_partial_message(first_music_panel_message_message)
@@ -378,26 +362,9 @@ class YTPlayerCog(commands.Cog):
         interaction: nextcord.Interaction, 
         searchit : str = nextcord.SlashOption(name="música", description="Procure por uma musica ou forneça um link do YouTube", required=True)
     ):
-        search = await nextwave.YouTubeTrack.search(query=searchit, return_first=True)
-
-        playing_embed = nextcord.Embed(
-            title="Agora Tocando:",
-            description=f"[{search.title}]({search.uri})",
-            color=0x2494f4
-        )
-
-        playing_embed.set_thumbnail(url=f"{search.mqthumbnail}")
-        playing_embed.set_footer(text=f"duração  {str(datetime.timedelta(seconds=search.length))}", icon_url="https://i.imgur.com/M6rbN5i.png")
-
-        added_queue_embed = nextcord.Embed(
-            title="Agora Tocando:",
-            description=f"[{search.title}]({search.uri})",
-            color=0x2494f4
-        )
-        added_queue_embed.set_thumbnail(url=f"{search.mqthumbnail}")
-
+        
         check_is_playing : nextwave.Player = interaction.guild.voice_client
-
+        
         if not getattr(interaction.user.voice, "channel", None):
             return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
         elif not interaction.guild.voice_client:
@@ -407,70 +374,95 @@ class YTPlayerCog(commands.Cog):
             vc: nextwave.Player = await interaction.user.voice.channel.connect(cls=nextwave.Player)
         else:
             vc: nextwave.Player = interaction.guild.voice_client
+            
+
+        await interaction.response.defer()
+            
+        if "spotify.com/track" in searchit:
+            search = await spotify.SpotifyTrack.search(query=searchit, return_first=True)
+        elif "spotify.com/playlist" in searchit:
+            search = await spotify.SpotifyTrack.search(query=searchit, type=spotify.SpotifySearchType.playlist)
+        elif "&list=" in searchit:
+            playlist = await vc.node.get_playlist(nextwave.YouTubePlaylist, searchit)
+            search = playlist.tracks
+        else:
+            search = await nextwave.YouTubeTrack.search(query=searchit, return_first=True)
 
         if vc.channel == interaction.user.voice.channel:
-            if not vc.is_playing() and vc.queue.is_empty and vc.channel == interaction.user.voice.channel:
+            
+            if not vc.is_playing() and vc.queue.is_empty:
+                await vc.set_volume(4)
                 
-                await vc.set_volume(2)
-                await vc.play(search)
+                if type(search) == list:
+                    
+                    await vc.play(search[0])
+                    
+                    for track in search[1:]:
+                        await vc.queue.put_wait(track)
+                        
+                    playing_embed = nextcord.Embed(
+                    title="Agora Tocando:",
+                    description=f"[{search[0].title}]({search[0].uri})",
+                    color=0x2494f4
+                    )
+                    playing_embed.set_thumbnail(url=f"{search[0].mqthumbnail}")
+                    playing_embed.set_footer(text=f"duração  {str(datetime.timedelta(seconds=search[0].length))}", icon_url="https://i.imgur.com/M6rbN5i.png")
+                    
+                else:
+                    await vc.play(search)
+                    playing_embed = nextcord.Embed(
+                    title="Agora Tocando:",
+                    description=f"[{search.title}]({search.uri})",
+                    color=0x2494f4
+                    )
+                    playing_embed.set_thumbnail(url=f"{search.mqthumbnail}")
+                    playing_embed.set_footer(text=f"duração  {str(datetime.timedelta(seconds=search.length))}", icon_url="https://i.imgur.com/M6rbN5i.png")
+                
                 try:
                     await self.handle_panel_edit(interaction)
                     await interaction.send(embed=music_player_utils.panel_embed_updated, delete_after=1)
-                except NameError:
+                except Exception:
                     await interaction.send(embed=playing_embed, delete_after=25)
-                except nextcord.NotFound:
-                    await interaction.send(embed=playing_embed, delete_after=25)
-                except AttributeError:
-                    await interaction.send(embed=playing_embed, delete_after=25)
-
-            elif vc.is_paused() and vc.channel == interaction.user.voice.channel:
                 
-                await vc.queue.put_wait(search)
-                pause_added_queue_embed = nextcord.Embed(
-                title="Adicionada à queue:",
-                description=f"[{search.title}]({search.uri})\n`{str(datetime.timedelta(seconds=search.length))}`",
-                color=0x2494f4
-                )
-                pause_added_queue_embed.set_thumbnail(url=f"{search.mqthumbnail}")
-                pause_added_queue_embed.add_field(name="lembrete", value="a música está pausada, para despausar basta usar o comando `/resume`")
-                
-                await vc.queue.put_wait(search)
-                queue = vc.queue.copy()
-                song_count = 0
-                for song in queue:
-                    song_count += 1
-                    pause_added_queue_embed.set_footer(text=f"Esta música foi adicionada na posição {song_count} da queue", icon_url="https://i.imgur.com/M6rbN5i.png")
-                await interaction.send(embed=pause_added_queue_embed, delete_after=10)
-                try:
-                    await self.handle_panel_edit(interaction)
-                except NameError:
-                    pass
-                except nextcord.NotFound:
-                    pass
-            elif vc.is_playing() and vc.channel == interaction.user.voice.channel:
-                
-                added_queue_embed = nextcord.Embed(
-                title="Adicionada à queue:",
-                description=f"[{search.title}]({search.uri})\n`{str(datetime.timedelta(seconds=search.length))}`",
-                color=0x2494f4
-                )
-                added_queue_embed.set_thumbnail(url=f"{search.mqthumbnail}")
-                
-                await vc.queue.put_wait(search)
-                queue = vc.queue.copy()
-                song_count = 0
-                for song in queue:
-                    song_count += 1
-                    added_queue_embed.set_footer(text=f"Esta música foi adicionada na posição {song_count} da queue", icon_url="https://i.imgur.com/M6rbN5i.png")
-                await interaction.send(embed=added_queue_embed, delete_after=10)
-                try:
-                    await self.handle_panel_edit(interaction)
-                except NameError:
-                    pass
-                except nextcord.NotFound:
-                    pass
             else:
-                return
+                
+                if type(search) == list:
+                    for track in search:
+                        await vc.queue.put_wait(track)
+                        
+                    added_queue_embed = nextcord.Embed(
+                    title="Adicionadas à queue:",
+                    description=f"`{len(search)}` músicas foram adicionadas à queue",
+                    color=0x2494f4
+                    )
+                    
+                    try:
+                        await self.handle_panel_edit(interaction)
+                    except Exception:
+                        pass
+                    
+                else:
+                    added_queue_embed = nextcord.Embed(
+                    title="Adicionada à queue:",
+                    description=f"[{search.title}]({search.uri})\n`{str(datetime.timedelta(seconds=search.length))}`",
+                    color=0x2494f4
+                    )
+                    added_queue_embed.set_thumbnail(url=f"{search.mqthumbnail}")
+                
+                    await vc.queue.put_wait(search)
+                    queue = vc.queue.copy()
+                    song_count = 0
+                    for song in queue:
+                        song_count += 1
+                        added_queue_embed.set_footer(text=f"Esta música foi adicionada na posição {song_count} da queue", icon_url="https://i.imgur.com/M6rbN5i.png")
+                        
+                    try:
+                        await self.handle_panel_edit(interaction)
+                    except Exception:
+                        pass
+                    
+                await interaction.send(embed=added_queue_embed, delete_after=10)
+
         else:
             await interaction.send(embed=music_player_utils.play_not_in_same_vc, ephemeral=True)
 
@@ -626,6 +618,14 @@ class YTPlayerCog(commands.Cog):
             return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
         else:
             vc: nextwave.Player = interaction.guild.voice_client
+            
+        try:
+            await self.check_if_panel_exists(interaction)
+            return await interaction.send(embed=music_player_utils.use_use_the_panel, ephemeral=True)
+        except NameError:
+            pass
+        except nextcord.NotFound:
+            pass
 
         try:
             vc.loop ^= True
@@ -633,13 +633,6 @@ class YTPlayerCog(commands.Cog):
             setattr(vc, "loop", False)
 
         if vc.channel == interaction.user.voice.channel:
-            try:
-                await self.check_if_panel_exists(interaction)
-                return await interaction.send(embed=music_player_utils.use_use_the_panel, ephemeral=True)
-            except NameError:
-                pass
-            except nextcord.NotFound:
-                pass
             if vc.loop:
                 await interaction.send(embed=music_player_utils.loop_embed, delete_after=15)
             else:
@@ -746,10 +739,11 @@ class YTPlayerCog(commands.Cog):
             song_count += 1
             if song_count == 1:
                 queue_embed.add_field(name=f"Próxima a tocar", value=f"[{song.title}]({song.uri})\n`{str(datetime.timedelta(seconds=song.length))}`", inline=False)
-            elif song_count > 10:
-                queue_embed.add_field(name=f"... e mais *{song_count}* outras músicas", inline=False)
-            else:
+            elif song_count <= 10:
                 queue_embed.add_field(name=f"Posição {song_count}", value=f"[{song.title}]({song.uri})\n`{str(datetime.timedelta(seconds=song.length))}`", inline=False)
+            elif len(queue) > 10:
+                queue_embed.add_field(name=f"\n... e mais *{queue.count-song_count+1}* outras músicas", value="\u200b", inline=False)
+                break
 
         await interaction.send(embed=queue_embed, ephemeral=True)
 
