@@ -5,12 +5,12 @@ from utils import jokenpo_utils
 
 
 class JokenpoCog(commands.Cog):
-    """Lets you talk to the bot in slash commands"""
+    """Lets you play jokenpo with the bot"""
 
     def __init__(self, bot):
         self.bot = bot
 
-    @nextcord.slash_command(name="jokenpo", description="Jogue uma rodada de Jokenpo com a Mashiro")
+    @nextcord.slash_command(name="jokenpo", description="Jogue uma rodada de Jokenpo com o Mekazuki")
     async def jokenpo(self,
             interaction: nextcord.Interaction,
             player_hand = nextcord.SlashOption(

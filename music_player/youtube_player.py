@@ -1,5 +1,3 @@
-import time
-from unicodedata import name
 import nextcord
 from nextcord.ext import commands
 import nextwave
@@ -98,7 +96,9 @@ class ControlPanel(nextcord.ui.View):
 
     async def handle_close(self, button:nextcord.ui.Button, interaction: nextcord.Interaction):
         vc: nextwave.Player = interaction.guild.voice_client
-        if vc.is_playing():
+        if vc is None:
+            return await interaction.message.delete()
+        elif vc.is_playing():
             if vc.channel == interaction.user.voice.channel:
                 await interaction.message.delete()
             else:
@@ -126,7 +126,6 @@ class ControlPanel(nextcord.ui.View):
                 await interaction.message.edit(view=self)
             else:
                 await interaction.send(embed=music_player_utils.command_not_in_same_vc, ephemeral=True)
-        #await interaction.response.defer()
 
     @nextcord.ui.button(emoji="<:skip_orange:980099944797061160>", style=nextcord.ButtonStyle.gray, custom_id="skip_button")
     async def skip_button(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
@@ -217,8 +216,8 @@ class YTPlayerCog(commands.Cog):
         password=_secrets_.lavalink_password,
         https=_secrets_.lavalink_https,
         spotify_client=spotify.SpotifyClient(
-            client_id= "8b35b207b7fc4d5393f05aa1887dac2b",
-            client_secret="da3bf7ccc5014dc5b2cfd06ec37b544f"
+            client_id= _secrets_.spotify_id,
+            client_secret= _secrets_.spotify_secret
         )
     )
 
@@ -267,7 +266,7 @@ class YTPlayerCog(commands.Cog):
                 guild = self.bot.get_guild(guild_utils.guild_id)
                 channel = guild.get_channel(guild_utils.music_channel_id)
                 await channel.send(embed=next_playing_embed, delete_after=25)
-
+        
         
 
 
@@ -318,6 +317,19 @@ class YTPlayerCog(commands.Cog):
         global first_music_panel_message_message
         first_music_panel_message_message = panel.id
 
+    async def handle_panel_added_tracks(self, interaction:nextcord.Interaction):
+        vc: nextwave.Player = interaction.guild.voice_client
+        channel = interaction.channel
+        edit_panel = channel.get_partial_message(first_music_panel_message_message)
+        
+        if vc.queue.count > 1:
+            music_player_utils.panel_embed.set_field_at(index=1, name="ㅤ", value=f"{vc.queue.count} músicas na fila para serem tocadas em seguida", inline=False)
+        elif vc.queue.count == 1:
+            music_player_utils.panel_embed.set_field_at(index=1, name="ㅤ", value=f"1 música na fila para ser tocada em seguida", inline=False)
+        else:
+            music_player_utils.panel_embed.set_field_at(index=1, name="ㅤ", value=f"nenhuma música na fila para ser tocada em seguida", inline=False)
+        await edit_panel.edit(embed=music_player_utils.panel_embed)
+        
     async def handle_panel_edit(self, interaction:nextcord.Interaction):
         panel_buttons = ControlPanel(self)
         vc: nextwave.Player = interaction.guild.voice_client
@@ -381,7 +393,7 @@ class YTPlayerCog(commands.Cog):
         if "spotify.com/track" in searchit:
             search = await spotify.SpotifyTrack.search(query=searchit, return_first=True)
         elif "spotify.com/playlist" in searchit:
-            search = await spotify.SpotifyTrack.search(query=searchit, type=spotify.SpotifySearchType.playlist)
+            search = await spotify.SpotifyTrack.search(query=searchit)
         elif "&list=" in searchit:
             playlist = await vc.node.get_playlist(nextwave.YouTubePlaylist, searchit)
             search = playlist.tracks
@@ -391,13 +403,11 @@ class YTPlayerCog(commands.Cog):
             except:
                 search = await vc.node.get_tracks(nextwave.YouTubeTrack, searchit)
 
-        if vc.channel == interaction.user.voice.channel:
-            
+        if vc.channel == interaction.user.voice.channel: 
             if not vc.is_playing() and vc.queue.is_empty:
                 await vc.set_volume(4)
                 
                 if type(search) == list:
-                    
                     await vc.play(search[0])
                     
                     for track in search[1:]:
@@ -408,6 +418,7 @@ class YTPlayerCog(commands.Cog):
                     description=f"[{search[0].title}]({search[0].uri})",
                     color=0x2494f4
                     )
+                    playing_embed.add_field(name="\u200b", value=f"e mais `{len(search)-1}` músicas foram adicionadas na fila\n")
                     playing_embed.set_thumbnail(url=f"{search[0].mqthumbnail}")
                     playing_embed.set_footer(text=f"duração  {str(datetime.timedelta(seconds=search[0].length))}", icon_url="https://i.imgur.com/M6rbN5i.png")
                     
@@ -428,7 +439,6 @@ class YTPlayerCog(commands.Cog):
                     await interaction.send(embed=playing_embed, delete_after=25)
                 
             else:
-                
                 if type(search) == list:
                     for track in search:
                         await vc.queue.put_wait(track)
@@ -455,7 +465,7 @@ class YTPlayerCog(commands.Cog):
                         )
                     
                     try:
-                        await self.handle_panel_edit(interaction)
+                        await self.handle_panel_added_tracks(interaction)
                     except Exception:
                         pass
                     
@@ -475,7 +485,7 @@ class YTPlayerCog(commands.Cog):
                         added_queue_embed.set_footer(text=f"Esta música foi adicionada na posição {song_count} da queue", icon_url="https://i.imgur.com/M6rbN5i.png")
                         
                     try:
-                        await self.handle_panel_edit(interaction)
+                        await self.handle_panel_added_tracks(interaction)
                     except Exception:
                         pass
                     
@@ -764,27 +774,6 @@ class YTPlayerCog(commands.Cog):
                 break
 
         await interaction.send(embed=queue_embed, ephemeral=True)
-
-
-    # @nextcord.slash_command(description="Mude volume que o bot está tocando a música")
-    # async def volume(self,
-    #     interaction: nextcord.Interaction,
-    #     volume: int = nextcord.SlashOption(name="volume", description="Especifique o volume que quer que o bot toque a música", required=True)
-    # ):
-        
-    #     if not getattr(interaction.user.voice, "channel", None):
-    #         return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
-    #     elif not interaction.guild.voice_client:
-    #         return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
-    #     else:
-    #         vc: nextwave.Player = interaction.guild.voice_client
-            
-    #     if volume > 100:
-    #         return await interaction.send("Não faça isso com seus tímpanos.. eles agradecem")
-    #     elif volume < 0:
-    #         return await interaction.send("Você tem certeza que colocou o número certo ?")
-    #     await interaction.send(f"O volume foi alterado para {volume}%")
-    #     await vc.set_volume(volume)
 
 
     @nextcord.slash_command(description="Envia o link da música atual no seu privado caso queira guardar para não perder", guild_ids=guild_utils.guild_ids)
