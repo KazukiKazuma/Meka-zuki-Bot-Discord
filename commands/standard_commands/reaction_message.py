@@ -13,14 +13,18 @@ class RegistrationMessage(commands.Cog):
     async def registerroleplay(self, ctx):
         
         guild = self.bot.get_guild(738510840042356857)
-        role1 = guild.get_role(969492005577183253)
-        role2 = guild.get_role(969560877860794389)
-        role3 = guild.get_role(969561374688673812)
-        role4 = guild.get_role(969562392927272980)
-        role5 = guild.get_role(969561839333695509)
-        role6 = guild.get_role(969562114983337995)
-        role7 = guild.get_role(739174493850828973)
-        role8 = guild.get_role(968305659588255824)
+        
+        roles = [
+            969492005577183253,
+            969560877860794389,
+            969561374688673812,
+            969562392927272980,
+            969561839333695509,
+            969562114983337995,
+            739174493850828973,
+            968305659588255824
+        ]
+
         bot_id = guild.get_member(self.bot.user.id)
         id_image_url = "https://i.imgur.com/4NkVgk1.png"
         
@@ -49,17 +53,13 @@ class RegistrationMessage(commands.Cog):
         
         message_to_react_to = await ctx.send(embed=reaction_registration)
         
+        emojis = ["🎎","🧝‍♂️","👷‍♂️","👨‍🌾","🦊","🌑","🔞","🧩"]
         
-        await nextcord.Message.add_reaction(message_to_react_to, emoji="🎎")
-        await nextcord.Message.add_reaction(message_to_react_to, emoji="🧝‍♂️")
-        await nextcord.Message.add_reaction(message_to_react_to, emoji="👷‍♂️")
-        await nextcord.Message.add_reaction(message_to_react_to, emoji="👨‍🌾")
-        await nextcord.Message.add_reaction(message_to_react_to, emoji="🦊")
-        await nextcord.Message.add_reaction(message_to_react_to, emoji="🌑")
-        await nextcord.Message.add_reaction(message_to_react_to, emoji="🔞")
-        await nextcord.Message.add_reaction(message_to_react_to, emoji="🧩")
+        for emoji in emojis:
+            await nextcord.Message.add_reaction(message_to_react_to, emoji=emoji)
         
-        await bot_id.remove_roles(role1, role2, role3, role4, role5, role6, role7, role8)
+        for role in roles:
+            await bot_id.remove_roles(guild.get_role(role))
 
 
 def setup(bot):

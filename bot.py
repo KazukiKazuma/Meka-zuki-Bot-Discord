@@ -3,6 +3,8 @@ import nextcord
 
 from nextcord.ext import commands
 
+# from twitchAPI import Twitch, EventSub
+
 from reaction_tasks.embed_roles.streamer_roles import DaxlianButtons, ScocottaButtons
 from reaction_tasks.role_buttons.reaction_buttons import VowButton
 from music_player.youtube_player import ControlPanel
@@ -52,7 +54,45 @@ bot.load_extension("reaction_tasks.reaction_roles.registration")
 bot.load_extension("commands.standard_commands.reaction_message")
 bot.load_extension("music_player.youtube_player")
 bot.load_extension("commands.slash_commands.help_command")
+bot.load_extension("commands.slash_commands.dice")
 #######
+
+
+
+# async def send_print():
+#     print(streamer)
+    
+#     guild = bot.get_guild(738510840042356857)
+#     channel = guild.get_channel(739176859127775323)
+    
+#     print(channel)
+    
+#     await channel.send("O Kazuki está online mas esse é apenas um teste.")
+
+# async def on_stream_online(data):
+#     print("It worked until here")
+#     global streamer
+#     streamer = data['event']['broadcaster_user_login']
+    
+#     guild = bot.get_guild(738510840042356857)
+#     channel = guild.get_channel(739176859127775323)
+    
+#     await channel.send("O Kazuki está online mas esse é apenas um teste.")
+    
+#     await send_print()
+   
+# client_id = _secrets_.t_client_id
+# client_secret = _secrets_.t_client_secret
+
+# twitch = Twitch(client_id, client_secret)
+# twitch.authenticate_app([])
+
+# hook = EventSub(_secrets_.https_redir, client_id, 8080, twitch)
+# uuid = twitch.get_users(logins=["kazukikazuma"])
+# user_id = uuid['data'][0]['id']
+# hook.unsubscribe_all()
+# hook.start()
+# hook.listen_stream_online(user_id, on_stream_online)
 
 
 
