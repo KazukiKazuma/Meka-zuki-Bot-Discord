@@ -61,6 +61,11 @@ help_music.add_field(
     inline=False
 )
 help_music.add_field(
+    name="/painel",
+    value="Cria um painel interativo no canal para você controlar as músicas tocadas pelo Meka-zuki em um lugar só.",
+    inline=False
+)
+help_music.add_field(
     name="ㅤ",
     value="ㅤ",
     inline=False
