@@ -14,23 +14,23 @@ class DiceCog(commands.Cog):
             interaction: nextcord.Interaction,
             quantity : int = nextcord.SlashOption(
                 name="quantidade",
-                description="Escolha a quantos dados quer jogar",
+                description="Escolha quantos dados quer jogar",
                 required=True,
             ),
             type = nextcord.SlashOption(
                 name="tipo",
-                description="Escolha qual dado quer jogar",
+                description="Escolha qual tipo de dado quer jogar",
                 required=True,
                 choices=["d4", "d6", "d8", "d10", "d12", "d20", "d100"]
             ),
             bonus_quantity : int = nextcord.SlashOption(
                 name="quantidade-de-dados-bônus",
-                description="Escolha a quantos dados quer jogar",
+                description="Escolha quantos dados quer jogar e adicionar o resultado à sua rolagem base",
                 required=False,
             ),
             bonus_type = nextcord.SlashOption(
                 name="tipo-do-dado-bônus",
-                description="Escolha qual dado quer jogar",
+                description="Escolha qual tipo de dado quer jogar para sua rolagem bônus",
                 required=False,
                 choices=["d4", "d6", "d8", "d10", "d12", "d20", "d100"]
             )

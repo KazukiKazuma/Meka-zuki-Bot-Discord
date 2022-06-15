@@ -16,12 +16,15 @@ class HelpCog(commands.Cog):
                 name="categoria",
                 description="Escolha o assunto que quer receber ajuda",
                 required=True,
-                choices=["Música"]
+                choices=["Música", "Rolagem de Dados"]
             )
             ):
         if help_needed == "Música":
             help_command_utils.help_music.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.display_avatar)
             await interaction.send(embed=help_command_utils.help_music, ephemeral=True)
+        elif help_needed == "Rolagem de Dados":
+            help_command_utils.help_dice.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.display_avatar)
+            await interaction.send(embed=help_command_utils.help_dice, ephemeral=True)
         else:
             await interaction.send("Aconteceu algo de errado, tente novamente noutra ocasião.")
 
