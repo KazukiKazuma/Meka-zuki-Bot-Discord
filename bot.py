@@ -8,7 +8,6 @@ from nextcord.ext import commands
 from reaction_tasks.embed_roles.streamer_roles import DaxlianButtons, ScocottaButtons
 from reaction_tasks.role_buttons.reaction_buttons import VowButton
 from music_player.youtube_player import ControlPanel
-from utils import guild_utils
 
 
 
@@ -37,7 +36,7 @@ intents.members=True
 
 
 ### Bot definitions ###
-bot = Bot(command_prefix=guild_utils.prefix, intents=intents)
+bot = Bot(command_prefix=_secrets_.prefix, intents=intents)
 ######
 
 
