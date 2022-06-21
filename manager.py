@@ -1,4 +1,5 @@
 from nextcord.ext import commands
+from alerts import stream_alerts
 
 
 class Manager(commands.Cog):
@@ -10,6 +11,7 @@ class Manager(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print(f"-------------------------\nEstou online como {self.bot.user}\n-------------------------")
+        stream_alerts.StreamData.send_print.start(self)
         
         
 
