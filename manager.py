@@ -11,7 +11,8 @@ class Manager(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print(f"-------------------------\nEstou online como {self.bot.user}\n-------------------------")
-        stream_alerts.StreamData.send_print.start(self)
+        stream_alerts.StreamData.send_alert_message.start(self)
+        stream_alerts.StreamData.update_alert_message.start(self)
         
         
 
