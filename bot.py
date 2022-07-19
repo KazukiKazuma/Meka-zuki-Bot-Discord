@@ -52,6 +52,7 @@ bot.load_extension("commands.standard_commands.reaction_message")
 bot.load_extension("music_player.youtube_player")
 bot.load_extension("commands.slash_commands.help_command")
 bot.load_extension("commands.slash_commands.dice")
+bot.load_extension("commands.slash_commands.modules_command")
 #######
 
 

@@ -5,6 +5,7 @@ from nextwave.ext import spotify
 import datetime
 from utils import music_player_utils, guild_utils
 import _secrets_
+from utils.commands_utils import command_modules, module_disabled_message
 
 
 
@@ -36,6 +37,8 @@ class ControlPanel(nextcord.ui.View):
             return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
         elif not interaction.guild.voice_client:
             return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
+        elif interaction.user.voice == None:
+            return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
         else:
             vc: nextwave.Player = interaction.guild.voice_client
 
@@ -61,6 +64,8 @@ class ControlPanel(nextcord.ui.View):
             return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
         elif not interaction.guild.voice_client:
             return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
+        elif interaction.user.voice == None:
+            return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
         else:
             vc: nextwave.Player = interaction.guild.voice_client
 
@@ -99,6 +104,8 @@ class ControlPanel(nextcord.ui.View):
         if vc is None:
             return await interaction.message.delete()
         elif vc.is_playing():
+            if interaction.user.voice == None:
+                return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
             if vc.channel == interaction.user.voice.channel:
                 await interaction.message.delete()
             else:
@@ -111,8 +118,16 @@ class ControlPanel(nextcord.ui.View):
 
     @nextcord.ui.button(emoji="<:pause_orange:980099882662625351>", style=nextcord.ButtonStyle.grey, custom_id="resume_and_pause_button")
     async def resume_and_pause_button(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
+        
         vc: nextwave.Player = interaction.guild.voice_client
         if not vc.is_playing():
+            return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
+        elif interaction.user.voice == None and vc.is_playing():
+            return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
+        elif interaction.user.voice == None and not vc.is_playing():
             return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
         else:
             if vc.channel == interaction.user.voice.channel:
@@ -129,6 +144,10 @@ class ControlPanel(nextcord.ui.View):
 
     @nextcord.ui.button(emoji="<:skip_orange:980099944797061160>", style=nextcord.ButtonStyle.gray, custom_id="skip_button")
     async def skip_button(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
+        
         vc: nextwave.Player = interaction.guild.voice_client
         if vc.loop:
             return await interaction.send(embed=music_player_utils.music_is_looping, ephemeral=True) 
@@ -150,11 +169,17 @@ class ControlPanel(nextcord.ui.View):
 
     @nextcord.ui.button(emoji="<:loop_one:980099967198847068>", style=nextcord.ButtonStyle.gray, custom_id="loop_button")
     async def loop_button(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
+        
         vc: nextwave.Player = interaction.guild.voice_client
         await interaction.response.defer()
         if not vc.is_playing():
             return await interaction.send(embed=music_player_utils.no_music_playing, ephemeral=True)
         else:
+            if interaction.user.voice == None:
+                return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
             if vc.channel == interaction.user.voice.channel:
                 if not vc.loop:
                     button.style = nextcord.ButtonStyle.blurple
@@ -267,11 +292,15 @@ class YTPlayerCog(commands.Cog):
                 channel = guild.get_channel(guild_utils.music_channel_id)
                 await channel.send(embed=next_playing_embed, delete_after=25)
         
-        
+
 
 
     @nextcord.slash_command(name="painel", description="Envia um painel de controle da música no canal de texto", guild_ids=guild_utils.guild_ids)
     async def panel(self, interaction:nextcord.Interaction):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
+        
         vc: nextwave.Player = interaction.guild.voice_client
         if not getattr(interaction.user.voice, "channel", None):
             return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
@@ -374,6 +403,9 @@ class YTPlayerCog(commands.Cog):
         interaction: nextcord.Interaction, 
         searchit : str = nextcord.SlashOption(name="música", description="Procure por uma musica ou forneça um link do YouTube", required=True)
     ):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
         
         check_is_playing : nextwave.Player = interaction.guild.voice_client
         
@@ -509,6 +541,9 @@ class YTPlayerCog(commands.Cog):
                 required=True
             )
         ):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
         
         playable = await nextwave.YouTubeTrack.search(query=remove, return_first=True)
         
@@ -572,6 +607,9 @@ class YTPlayerCog(commands.Cog):
                 required=True
             )
         ):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
         
         playable = await nextwave.YouTubeTrack.search(query=remove, return_first=True)
         
@@ -645,6 +683,10 @@ class YTPlayerCog(commands.Cog):
 
     @nextcord.slash_command(description="Pausa a música tocando", guild_ids=guild_utils.guild_ids)
     async def pause(self, interaction: nextcord.Interaction):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
+        
         if not getattr(interaction.user.voice, "channel", None):
             return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
         elif not interaction.guild.voice_client:
@@ -671,6 +713,10 @@ class YTPlayerCog(commands.Cog):
 
     @nextcord.slash_command(description="Despausa a música ques está pausada", guild_ids=guild_utils.guild_ids)
     async def resume(self, interaction: nextcord.Interaction):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
+        
         if not getattr(interaction.user.voice, "channel", None):
             return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
         elif not interaction.guild.voice_client:
@@ -697,6 +743,10 @@ class YTPlayerCog(commands.Cog):
 
     @nextcord.slash_command(description="Para de tocar música e limpa a queue", guild_ids=guild_utils.guild_ids)
     async def stop(self, interaction: nextcord.Interaction):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
+        
         if not getattr(interaction.user.voice, "channel", None):
             return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
         elif not interaction.guild.voice_client:
@@ -730,12 +780,9 @@ class YTPlayerCog(commands.Cog):
 
     @nextcord.slash_command(description="Faz com que o bot saia do canal de voz que está conectado", guild_ids=guild_utils.guild_ids)
     async def leave(self, interaction: nextcord.Interaction):
-
-        leave_embed = nextcord.Embed(
-            title="Saindo do canal",
-            description="até a próxima !",
-            color=0xd43b3d
-        )
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
 
         if not getattr(interaction.user.voice, "channel", None):
             return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
@@ -745,7 +792,14 @@ class YTPlayerCog(commands.Cog):
             vc: nextwave.Player = interaction.guild.voice_client
 
         if vc.channel == interaction.user.voice.channel or not vc.is_playing():
+            leave_embed = nextcord.Embed(
+            title="Saindo do canal",
+            description="até a próxima !",
+            color=0xd43b3d
+            )
+            
             await interaction.send(embed=leave_embed, delete_after=5)
+            await vc.stop()
             await vc.disconnect()
             try:
                 channel = interaction.channel
@@ -761,6 +815,10 @@ class YTPlayerCog(commands.Cog):
 
     @nextcord.slash_command(description="Repete ou Para de Repetir a música atual", guild_ids=guild_utils.guild_ids)
     async def loop(self, interaction: nextcord.Interaction):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
+        
         if not getattr(interaction.user.voice, "channel", None):
             return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
         elif not interaction.guild.voice_client:
@@ -792,6 +850,10 @@ class YTPlayerCog(commands.Cog):
 
     @nextcord.slash_command(description="Pula para a próxima música da queue", guild_ids=guild_utils.guild_ids)
     async def skip(self, interaction: nextcord.Interaction):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
+        
         if not getattr(interaction.user.voice, "channel", None):
             return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
         elif not interaction.guild.voice_client:
@@ -836,6 +898,10 @@ class YTPlayerCog(commands.Cog):
 
     @nextcord.slash_command(description="Veja qual música está tocando no momento", guild_ids=guild_utils.guild_ids)
     async def nowplaying(self, interaction: nextcord.Interaction):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
+        
         if not getattr(interaction.user.voice, "channel", None):
             return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
         elif not interaction.guild.voice_client:
@@ -858,6 +924,9 @@ class YTPlayerCog(commands.Cog):
 
     @nextcord.slash_command(description="Mostra a lista de músicas atualmente na queue", guild_ids=guild_utils.guild_ids)
     async def queue(self, interaction: nextcord.Interaction):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
 
         empty_queue_embed = nextcord.Embed(
             title="A queue está vazia",
@@ -899,6 +968,10 @@ class YTPlayerCog(commands.Cog):
 
     @nextcord.slash_command(description="Envia o link da música atual no seu privado caso queira guardar para não perder", guild_ids=guild_utils.guild_ids)
     async def link_da_musica_no_pv(self, interaction: nextcord.Interaction):
+        if command_modules['Music Player'] == "Off":
+            await interaction.send(embed=module_disabled_message)
+            return
+        
         if not getattr(interaction.user.voice, "channel", None):
             return await interaction.send(embed=music_player_utils.connect_first, ephemeral=True)
         elif not interaction.guild.voice_client:
