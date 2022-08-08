@@ -25,6 +25,9 @@ class RegisterRoles(commands.Cog):
         
         bot = self.bot
         
+        if str(payload.member) == str(bot.user):
+            return
+        
         if payload.channel_id != self.role_channel_id:
             return
 

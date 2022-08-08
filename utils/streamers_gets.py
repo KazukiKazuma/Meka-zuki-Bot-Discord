@@ -7,24 +7,27 @@ watchlist = [
 ]
 
 
-######################################   EMBEDS   ######################################
+######################################   CUSTOM EMBEDS   ##################################
 
 kazukikazuma_embed = nextcord.Embed(
-    title="Kazuki is Online",
-    description="mas é só um teste",
-    color=0xe2fecf
+    title="Kazuki está Online",
+    description="Sinta-se a vontade para vir à live e trocar uma ideia",
+    color=0xb87341
 )
-kazukikazuma_embed.set_thumbnail(url="https://c.tenor.com/C3fD3dTgaPcAAAAC/kazuma-konosuba.gif")
-kazukikazuma_embed.set_image(url="https://c.tenor.com/AeMs5ZptdRUAAAAC/world-series-my-body-is-ready.gif")
+kazukikazuma_embed.set_thumbnail(url="https://i.imgur.com/37jlYoS.jpg")
+kazukikazuma_embed.set_image(url="https://i.imgur.com/QeMME1K.gif")
 
 ##
 
 scocotta_embed = nextcord.Embed(
-    title="O Scocotta está online galera",
-    description="Venham assistir à cocotta guerreirinha e seus delírios."
+    title="Live do Scocotta começando!",
+    description="Venham assistir as lives e aprender como nao se deve jogar!",
+    color=0x83b834
 )
+scocotta_embed.set_thumbnail(url="https://i.imgur.com/65CinUN.png")
+scocotta_embed.set_image(url="https://i.imgur.com/lBwH69L.jpg")
 
-########################################################################################
+###########################################################################################
 
 
 streamers_embeds = {
@@ -34,7 +37,7 @@ streamers_embeds = {
 
 streamers_channels = {
     "kazukikazuma":"https://www.twitch.tv/kazukikazuma",
-    "scocotta":"https://www.twitch.tv/scocotta"
+    "scocotta":"https://www.twitch.tv/scocotta",
 }
 
 streamer_roles = {

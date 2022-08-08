@@ -1,3 +1,2 @@
 __pycache__
-_secrets_.py
-_stream_alerts_temp_.py
+.env
