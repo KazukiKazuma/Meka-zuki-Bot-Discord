@@ -1,20 +1,34 @@
 import nextcord
-import twitchAPI
 from nextcord.ext import commands, tasks
+
+from decouple import config
+
 from twitchAPI import Twitch, EventSub
+
 import time
-import _secrets_
+
 from utils import streamers_gets, guild_utils
+
 from utils.commands_utils import command_modules, module_disabled_message
+
+from config.bot_info import bot_language
+from language import languages
+
+code_language = languages.languages[bot_language.CHOSEN_LANGUAGE]
+
     
     
-class StreamData(commands.Cog):
-    def __init__(self, bot):
+class StreamAlert(commands.Cog):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
     
     
     @tasks.loop(seconds=30)
     async def send_alert_message(self):
+        if command_modules['Stream Alerts'] == "Off":
+            return
+        
+        ### print("looping")
         ### print(f"ONLINE: {streamers_gets.streamers}")
         ### print(f"MESSAGES: {streamers_gets.streamer_alert_messages}")
         ### print(f"UPDATE: {streamers_gets.streamer_channel_to_update}")
@@ -52,10 +66,10 @@ class StreamData(commands.Cog):
                     
                     if streamer in streamers_gets.streamers_embeds:
                         streamers_gets.streamers_embeds[streamer].clear_fields()
-                        streamers_gets.streamers_embeds[streamer].add_field(name="\u200b", value=f">>> [**{streamers_gets.channels_info[streamer]['data'][0]['title']}**]({streamers_gets.streamers_channels[streamer]})\nTransmitindo: {streamers_gets.channels_info[streamer]['data'][0]['game_name']}", inline=False)
-                        streamers_gets.streamers_embeds[streamer].add_field(name="\u200b", value=f"[Assista à stream __aqui__]({streamers_gets.streamers_channels[streamer]})", inline=False)
+                        streamers_gets.streamers_embeds[streamer].add_field(name="\u200b", value=f">>> [**{streamers_gets.channels_info[streamer]['data'][0]['title']}**]({streamers_gets.streamers_channels[streamer]})\n{code_language.stream_alerts['Streaming']}: {streamers_gets.channels_info[streamer]['data'][0]['game_name']}", inline=False)
+                        streamers_gets.streamers_embeds[streamer].add_field(name="\u200b", value=f"[{code_language.stream_alerts['Watch the stream here']}]({streamers_gets.streamers_channels[streamer]})", inline=False)
                         if streamers_gets.channels_info[streamer]['data'][0]['is_mature'] == True:
-                            streamers_gets.streamers_embeds[streamer].set_footer(text="Este streamer classificou o próprio conteúdo como não recomendado para menores de idade", icon_url="https://i.imgur.com/4jWXm42.png")
+                            streamers_gets.streamers_embeds[streamer].set_footer(text=code_language.stream_alerts["This streamer has classified their content as recommended for a mature audience"], icon_url="https://i.imgur.com/4jWXm42.png")
                         else:
                             try:
                                 streamers_gets.streamers_embeds[streamer].remove_footer()
@@ -83,10 +97,10 @@ class StreamData(commands.Cog):
             else:
                 if streamer in streamers_gets.streamers_embeds:
                     streamers_gets.streamers_embeds[streamer].clear_fields()
-                    streamers_gets.streamers_embeds[streamer].add_field(name="\u200b", value=f">>> [**{streamers_gets.channels_info[streamer]['data'][0]['title']}**]({streamers_gets.streamers_channels[streamer]})\nTransmitindo: {streamers_gets.channels_info[streamer]['data'][0]['game_name']}", inline=False)
-                    streamers_gets.streamers_embeds[streamer].add_field(name="\u200b", value=f"[Assista à stream __aqui__]({streamers_gets.streamers_channels[streamer]})", inline=False)
+                    streamers_gets.streamers_embeds[streamer].add_field(name="\u200b", value=f">>> [**{streamers_gets.channels_info[streamer]['data'][0]['title']}**]({streamers_gets.streamers_channels[streamer]})\n{code_language.stream_alerts['Streaming']}: {streamers_gets.channels_info[streamer]['data'][0]['game_name']}", inline=False)
+                    streamers_gets.streamers_embeds[streamer].add_field(name="\u200b", value=f"[{code_language.stream_alerts['Watch the stream here']}]({streamers_gets.streamers_channels[streamer]})", inline=False)
                     if streamers_gets.channels_info[streamer]['data'][0]['is_mature'] == True:
-                        streamers_gets.streamers_embeds[streamer].set_footer(text="Este streamer classificou o próprio conteúdo como não recomendado para menores de idade", icon_url="https://i.imgur.com/4jWXm42.png")
+                        streamers_gets.streamers_embeds[streamer].set_footer(text=code_language.stream_alerts["This streamer has classified their content as recommended for a mature audience"], icon_url="https://i.imgur.com/4jWXm42.png")
                     else:
                         try:
                             streamers_gets.streamers_embeds[streamer].remove_footer()
@@ -109,6 +123,11 @@ class StreamData(commands.Cog):
             
     @tasks.loop(seconds=60)
     async def update_alert_message(self):
+        if command_modules['Stream Alerts'] == "Off":
+            return
+        
+        ### print("looping")
+        
         if streamers_gets.streamer_channel_to_update == {}:
             return
         
@@ -122,10 +141,10 @@ class StreamData(commands.Cog):
         for streamer in temp_update_list:
             
             if streamer in streamers_gets.streamers_embeds:
-                streamers_gets.streamers_embeds[streamer].set_field_at(index=0, name="\u200b", value=f">>> [**{streamers_gets.streamer_channel_to_update[streamer]['event']['title']}**]({streamers_gets.streamers_channels[streamer]})\nTransmitindo: {streamers_gets.streamer_channel_to_update[streamer]['event']['category_name']}", inline=False)
+                streamers_gets.streamers_embeds[streamer].set_field_at(index=0, name="\u200b", value=f">>> [**{streamers_gets.streamer_channel_to_update[streamer]['event']['title']}**]({streamers_gets.streamers_channels[streamer]})\n{code_language.stream_alerts['Streaming']}: {streamers_gets.streamer_channel_to_update[streamer]['event']['category_name']}", inline=False)
                 
                 if streamers_gets.streamer_channel_to_update[streamer]['event']['is_mature'] == True:
-                    streamers_gets.streamers_embeds[streamer].set_footer(text="Este streamer classificou o próprio conteúdo como não recomendado para menores de idade", icon_url="https://i.imgur.com/4jWXm42.png")
+                    streamers_gets.streamers_embeds[streamer].set_footer(text=code_language.stream_alerts["This streamer has classified their content as recommended for a mature audience"], icon_url="https://i.imgur.com/4jWXm42.png")
                 else:
                     try:
                         streamers_gets.streamers_embeds[streamer].remove_footer()
@@ -148,6 +167,9 @@ class StreamData(commands.Cog):
             
     
     async def on_stream_online(data):
+        if command_modules['Stream Alerts'] == "Off":
+            return
+        
         streamer = data['event']['broadcaster_user_login']
         print(f"{streamer} went online at {time.asctime()}")
         
@@ -155,6 +177,9 @@ class StreamData(commands.Cog):
         streamers_gets.streamers[streamer] = streamers_gets.streamers_embeds[streamer]
     
     async def on_channel_update(data):
+        if command_modules['Stream Alerts'] == "Off":
+            return
+        
         streamer = data['event']['broadcaster_user_login']
         print(f"{streamer} updated at {time.asctime()}")
         
@@ -165,17 +190,17 @@ class StreamData(commands.Cog):
 
 
 
-    client_id = _secrets_.t_client_id
-    client_secret = _secrets_.t_client_secret
-    webhook = _secrets_.webhook_redir
-    port = _secrets_.webhook_port
+    CLIENT_ID = config("TWITCH_CLIENT_ID")
+    CLIENT_SECRET = config("TWITCH_CLIENT_SECRET")
+    WEBHOOK = config("TWITCH_WEBROOK")
+    PORT = config("TWITCH_WEBHOOK_PORT")
 
     global twitch
-    twitch = Twitch(client_id, client_secret)
+    twitch = Twitch(CLIENT_ID, CLIENT_SECRET)
     twitch.authenticate_app([])
 
     global hook
-    hook = EventSub(webhook, client_id, port, twitch)
+    hook = EventSub(WEBHOOK, CLIENT_ID, PORT, twitch)
     global uuid
     uuid = twitch.get_users(logins=streamers_gets.watchlist)
     hook.unsubscribe_all()
@@ -184,28 +209,23 @@ class StreamData(commands.Cog):
     if command_modules['Stream Alerts'] == "On":
         hook.start()
     
-    
-    async def listen_starter(self):
-        position = 0
-        for _ in uuid['data']:
+    position = 0
+    for _ in uuid['data']:
             user_id = uuid['data'][position]['id']
-            hook.listen_stream_online(user_id, self.on_stream_online)
-            hook.listen_channel_update(user_id, self.on_channel_update)
+            hook.listen_stream_online(user_id, on_stream_online)
+            hook.listen_channel_update(user_id, on_channel_update)
             position += 1
     
-    try:
-        listen_starter()
-    except Exception:
-        pass
     
     
     if command_modules['Stream Alerts'] == "On":
-        print(f"-------------------------\nTwitch Webhook connection established succesfully")
+        print(f"-------------------------\nTwitch Webhook connection ESTABLISHED succesfully")
+    elif command_modules['Stream Alerts'] == "Off":
+        print(f"-------------------------\nTwitch Webhook connection is DISABLED in the modules")
         
     
     async def turn_on_stream_alerts(self):
         hook.start()
-        await self.listen_starter()
         print(f"-------------------------\nTwitch Webhook connection ESTABLISHED succesfully\n-------------------------")
         
     async def turn_off_stream_alerts(self):
@@ -217,4 +237,4 @@ class StreamData(commands.Cog):
     
  
 def setup(bot):
-    bot.add_cog(StreamData(bot))
+    bot.add_cog(StreamAlert(bot))

@@ -25,7 +25,6 @@ class RegistrationMessage(commands.Cog):
             968305659588255824
         ]
 
-        bot_id = guild.get_member(self.bot.user.id)
         id_image_url = "https://i.imgur.com/4NkVgk1.png"
         
         reaction_registration = nextcord.Embed(
@@ -57,9 +56,6 @@ class RegistrationMessage(commands.Cog):
         
         for emoji in emojis:
             await nextcord.Message.add_reaction(message_to_react_to, emoji=emoji)
-        
-        for role in roles:
-            await bot_id.remove_roles(guild.get_role(role))
 
 
 def setup(bot):

@@ -1,6 +1,6 @@
 import nextcord
 from nextcord.ext import commands
-from alerts import stream_alerts
+from alerts.stream_alerts.stream_alerts import StreamAlert
 from utils import help_command_utils, guild_utils
 from utils.commands_utils import command_modules
 
@@ -31,7 +31,7 @@ class ModuleCog(commands.Cog):
             if state == "On":
                 command_modules['Alerta de Stream']="On"
                 try:
-                    stream_alerts.StreamData.turn_on_stream_alerts()
+                    StreamAlert.turn_on_stream_alerts()
                     response_on = nextcord.Embed(
                         description="O módulo de `Alerta de Streams` agora está **ligado**",
                         color=0x83b834
@@ -45,7 +45,7 @@ class ModuleCog(commands.Cog):
             elif state == "Off":
                 command_modules['Alerta de Stream']="Off"
                 try:
-                    stream_alerts.StreamData.turn_off_stream_alerts()
+                    StreamAlert.turn_off_stream_alerts()
                     response_off = nextcord.Embed(
                         description="O módulo de `Alerta de Streams` agora está **desligado**",
                         color=0xe53b44

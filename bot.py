@@ -1,11 +1,17 @@
 import nextcord
-import _secrets_
-
 from nextcord.ext import commands
 
-from reaction_tasks.embed_roles.streamer_roles import DaxlianButtons, ScocottaButtons
-from reaction_tasks.role_buttons.reaction_buttons import VowButton
-from music_player.youtube_player import ControlPanel
+from decouple import config
+
+### Streamer Imports ###
+from tasks.button_tasks.streamers_roles_buttons.scocotta_streamer_buttons import ScocottaButtons
+from tasks.button_tasks.streamers_roles_buttons.daxlian_streamer_buttons import DaxlianButtons
+######
+
+from tasks.button_tasks.new_member_verification_button import VerificationButton
+from music_player.player_control_panel.control_panel_butons import ControlPanelButtons
+
+from config.bot_info.bot_prefix import BOT_PREFIX
 
 
 
@@ -18,10 +24,10 @@ class Bot(commands.Bot):
     async def on_ready(self):
         if not self.persistent_views_added:
 
-            self.add_view(VowButton(bot))
+            self.add_view(VerificationButton(bot))
             self.add_view(ScocottaButtons())
             self.add_view(DaxlianButtons())
-            self.add_view(ControlPanel(bot))
+            self.add_view(ControlPanelButtons(bot))
 
             self.persistent_views_added = True
 ######
@@ -34,25 +40,17 @@ intents.members=True
 
 
 ### Bot definitions ###
-bot = Bot(command_prefix=_secrets_.prefix, intents=intents)
+bot = Bot(command_prefix=BOT_PREFIX, intents=intents)
 ######
 
 
 
-### Commands ###
-bot.load_extension("commands.slash_commands.slash_talks")
-bot.load_extension("commands.slash_commands.jokenpo")
-bot.load_extension("commands.standard_commands.minecraft_server_status")
-bot.load_extension("reaction_tasks.role_buttons.reaction_buttons")
-bot.load_extension("reaction_tasks.embed_roles.streamer_roles")
-bot.load_extension("events.on_join_server")
-bot.load_extension("reaction_tasks.reaction_roles.registration")
-bot.load_extension("alerts.stream_alerts")
-bot.load_extension("commands.standard_commands.reaction_message")
-bot.load_extension("music_player.youtube_player")
-bot.load_extension("commands.slash_commands.help_command")
-bot.load_extension("commands.slash_commands.dice")
-bot.load_extension("commands.slash_commands.modules_command")
+### Modules ###
+bot.load_extension("alerts.alerts_starter")
+bot.load_extension("tasks.tasks_starter")
+bot.load_extension("events.events_starter")
+bot.load_extension("music_player.player_starter")
+bot.load_extension("commands.commands_starter")
 #######
 
 
@@ -62,7 +60,7 @@ bot.load_extension("manager")
 
 
 
-### Discord bot TOKEN  and RUN###
-bot_token = _secrets_.bot_token
-bot.run(bot_token)
+### Discord bot TOKEN  and RUN ###
+BOT_TOKEN = config("BOT_TOKEN")
+bot.run(BOT_TOKEN)
 ######
